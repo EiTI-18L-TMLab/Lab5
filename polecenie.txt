@@ -1,0 +1,17 @@
+TM æwiczenie 5 
+
+Korzystaj¹c z pakietu z mikrokontrolerem MSP430 oraz innych modu³ów systemu SML-3 nale¿y zrealizowaæ system o funkcjonalnoœci jak w æwiczeniu 4, 
+z zast¹pieniem przycisków i wyœwietlacza terminalem znakowym (klawiatura + ekran PC) do³¹czonym przez port RS-232.
+
+Wybrane zadanie dodatkowe:
+16.   korygowanie linii tekstu zakoñczonych znakiem CR przez usuwanie powtórzonych znaków i zbêdnych spacji oraz konwersjê wielkich liter, np.:
+"ALA ma Kooota  , 1123" -> "Ala ma kota, 123"
+
+UWAGI
+- proszê przemyœleæ funkcje systemu (i ewentualnie wzbogaciæ interakcjê) oraz sposób jego uruchamiania;
+- w razie potrzeby proszê sformu³owaæ dodatkowe za³o¿enia zmieniaj¹ce funkcjonalnoœæ z uwzglêdnieniem specyfiki transmisji szeregowej;
+- nadawanie i odbieranie danych nale¿y realizowaæ z najwiêksz¹ dostêpn¹ szybkoœci¹, buforowaniem programowym i z u¿yciem przerwañ;
+- w przypadku pomiarów nale¿y oszacowaæ u¿yteczny zakres i dok³adnoœæ. 
+
+Realizacja zadania z puli dodatkowej umo¿liwia uzyskanie do 2 dodatkowych punktów.
+U¿ycie w rozwi¹zaniu sterownika DMA umo¿liwia uzyskanie do 2 dodatkowych punktów.
