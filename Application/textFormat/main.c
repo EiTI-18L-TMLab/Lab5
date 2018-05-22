@@ -26,9 +26,9 @@ int main()
     char * data = malloc(mystrlen(received));
     strcpy(received,data);
 
-    char * formatedText = textFormat(data);
+    textFormat(data);
     //printf(formatedText);
-    free(formatedText);
+    free(data);
 
     return 0;
 }
@@ -37,25 +37,17 @@ int main()
 char * textFormat( char * inputText )
 {
     char * outputText;
-    //printf("%s \n\r", inputText);
+    printf("%s \n\r", inputText);
     toLowCases(inputText);
-    //printf("%s \n\r", inputText);
-    outputText = formatRepeatedLetters(inputText);
-    free(inputText);
-    inputText = outputText;
-    //printf("%s \n\r", inputText);
-    outputText = formatSpaces(inputText);
-    free(inputText);
-    inputText = outputText;
-    //printf("%s \n\r", inputText);
-    outputText = formatRepeatedLetters(inputText);
-    free(inputText);
-    inputText = outputText;
-    //printf("%s \n\r", inputText);
-    outputText = formatCapitalLetter(inputText);
-    free(inputText);
-    inputText = outputText;
-    //printf("%s \n\r", inputText);
+    printf("%s \n\r", inputText);
+    formatRepeatedLetters(inputText);
+    printf("%s \n\r", inputText);
+    formatSpaces(inputText);
+    printf("%s \n\r", inputText);
+    formatRepeatedLetters(inputText);
+    printf("%s \n\r", inputText);
+    formatCapitalLetter(inputText);
+    printf("%s \n\r", inputText);
 
     return outputText;
 }
@@ -72,7 +64,6 @@ char * toLowCases( char * inputText )
         n++;
     }
     return inputText;
-
 }
 
 char * formatCapitalLetter( char * inputText )
@@ -106,66 +97,76 @@ char * formatCapitalLetter( char * inputText )
             wasCapital = false;
         n++;
     }
-
-
-    outputText = malloc(mystrlen(inputText));
-    strcpy(inputText,outputText);
-    //free(inputText);
-    return outputText;
+    return inputText;
 }
 
 char * formatRepeatedLetters( char * inputText )
 {
-    char * outputText;
-    uint16_t out = 0;
     char prevChar = ' ';
-
-    outputText = malloc(mystrlen(inputText));
-    outputText[0] = 0;
 
     uint16_t n = 0;
     while( inputText[n]!=0 )
     {
-        if( prevChar!=inputText[n] ) // pominięcie powtarzających się znaków
+        if( prevChar==inputText[n] ) // pominięcie powtarzających się znaków
         {
             prevChar = inputText[n];
-            outputText[out] = inputText[n];
-            out++;
-            outputText[out] = 0;
+            inputText[n] = ((char)0xff ); // pozycja do usunięcia
+        }
+        else
+            prevChar = inputText[n];
+        n++;
+    }
+
+    uint16_t shift = 0;
+    n = 0;
+    while( inputText[n]!=0 )
+    {
+        if( inputText[n]==((char)0xff) ) // pominięcie powtarzających się znaków
+        {
+            shift++;
+        }
+        else
+        {
+            inputText[n-shift] = inputText[n];
         }
         n++;
     }
-    //strcpy(inputText,outputText);
-    return outputText;
+    inputText[n-shift] = 0;
+    return inputText;
 }
 
 char * formatSpaces( char * inputText )
 {
-    char * outputText;
-    uint16_t out = 0;
     char prevChar = ' ';
     bool wasLetter = false;
-
-    outputText = malloc(mystrlen(inputText));
-    outputText[0] = 0;
 
     uint16_t n = 0;
     while( inputText[n]!=0 )
     {
         if( inputText[n]==' ' && (inputText[n+1]==',' || inputText[n+1]=='.' || inputText[n+1]==';') )
         {
-            n++;
-            continue;
+            inputText[n] = ((char)0xff);
         }
-        outputText[out] = inputText[n];
-        out++;
-        outputText[out] = 0;
         n++;
     }
 
+    uint16_t shift = 0;
+    n = 0;
+    while( inputText[n]!=0 )
+    {
+        if( inputText[n]==((char)0xff) ) // pominięcie powtarzających się znaków
+        {
+            shift++;
+        }
+        else
+        {
+            inputText[n-shift] = inputText[n];
+        }
+        n++;
+    }
+    inputText[n-shift] = 0;
 
-    //strcpy(inputText,outputText);
-    return outputText;
+    return inputText;
 }
 
 uint16_t mystrlen( char * str )
