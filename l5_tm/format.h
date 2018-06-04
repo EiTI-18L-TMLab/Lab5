@@ -9,7 +9,7 @@
 #define isHighCase(letter) (letter>='A' && letter<='Z')
 #define isLetter(letter) (isLowCase(letter)||isHighCase(letter))
 #define isDigit(digit) (digit>='0' && digit<='9')
-#define BlankLetter (-1)
+#define BlankLetter (0xfe)
 
 uint16_t mystrlen( char * str );
 char * mystrcpy( char * src, char * dst );

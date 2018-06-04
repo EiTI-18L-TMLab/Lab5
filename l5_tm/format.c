@@ -48,6 +48,19 @@ char * formatCapitalLetter( char * inputText )
     return inputText;
 }
 
+char * textRecognition( char * inputText)
+{
+
+    uint16_t n = 0;
+    while( inputText[n+3]!= END_SIGN )
+    {
+    	if( inputText[n]=='a' && inputText[n+1]=='r' && inputText[n+2]=='k' && inputText[n+3]=='a')
+    		{inputText[n]='p'; inputText[n+1]='a'; inputText[n+2]='n'; inputText[n+3]='y'; }
+    	n++;
+    }
+    return inputText;
+}
+
 // Usunięcie powtórzonych znaków
 char * formatRepeatedLetters( char * inputText )
 {
@@ -65,6 +78,10 @@ char * formatRepeatedLetters( char * inputText )
         else
             prevChar = inputText[n];
     }
+
+   // if( inputText[1]==' ' )
+   // 	inputText[1] = BlankLetter; // Usuniecie pierwszej spacji
+
     inputText = removeBlankLetters( inputText ); // przesunięcie widocznych znaków do początku
 
     return inputText;
@@ -133,17 +150,20 @@ char * mystrcpy( char * src, char * dst )
 //formatuj tekst
 char * textFormat( char * inputText )
 {
-    printf("INPUT: %s \n\r", inputText);
+
+
+    //printf("INPUT: %s \n\r", inputText);
     inputText = toLowCases(inputText);
-    printf("%s \n\r", inputText);
+    inputText = textRecognition(inputText);
+    //printf("%s \n\r", inputText);
     inputText = formatRepeatedLetters(inputText);
-    printf("%s \n\r", inputText);
+    //printf("%s \n\r", inputText);
     inputText = formatSpaces(inputText);
-    printf("%s \n\r", inputText);
+    //printf("%s \n\r", inputText);
     inputText = formatRepeatedLetters(inputText);
-    printf("%s \n\r", inputText);
+    //printf("%s \n\r", inputText);
     inputText = formatCapitalLetter(inputText);
-    printf("OUTPUT: %s \n\r", inputText);
+    //printf("OUTPUT: %s \n\r", inputText);
 
     return inputText;
 }

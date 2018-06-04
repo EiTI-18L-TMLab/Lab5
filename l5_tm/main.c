@@ -37,7 +37,7 @@ int main(void) {
     U0BR0 = 0x09;
     U0MCTL = 0x08;
     ME1 = UTXE0 | URXE0;
-    IE1 = UTXIE0 | URXIE0;
+    IE1 = /*UTXIE0 |*/ URXIE0;
     IFG1 &= ~UTXIFG0;
 
     //char* app_buffer = malloc(100*sizeof(char));
@@ -48,14 +48,16 @@ int main(void) {
 
     while (1) {
     	textFormat(app_buffer);
-    	int i = 1;
-    	TXBUF0 = app_buffer[0];
-    	while (i < mystrlen(app_buffer))
+    	int i = 0;
+    	//TXBUF0 = app_buffer[0];
+		data_buffer_write(&txBuf, '\n');
+    	while (i <= mystrlen(app_buffer))
     	{
     		//if(i==2) IFG1 |= UTXIFG0;
     		data_buffer_write(&txBuf, app_buffer[i]);
     		i++;
     	}
+    	IE1 |= UTXIE0;
     	__bis_SR_register(GIE + CPUOFF);
     }
 
@@ -65,7 +67,9 @@ int main(void) {
 __interrupt void USART0_RX (void) {
 	char received;
 	received = RXBUF0;
-	data_buffer_write(&rxBuf, received);
+
+	if(DATA_BUFFER_READY_TO_WRITE(rxBuf))
+		data_buffer_write(&rxBuf, received);
 	TXBUF0 = received; //echo
 
 	//sprawdzanie czy wyslac to do aplikacji
@@ -74,13 +78,14 @@ __interrupt void USART0_RX (void) {
 
 		//otworz aplikacje
 		data_buffer_write(&rxBuf, '\n');
-		app_buffer[0] = '\n';
-		uint8_t n = 1;
+		//app_buffer[0] = '\n';
+		uint8_t n = 0;
 		while(data_buffer_number(&rxBuf) > 0){
 			app_buffer[n] = data_buffer_read(&rxBuf);
 			n++;
 		}
-		app_buffer[n] = '\n';
+		//DATA_BUFFER_CLEAR(rxBuf)
+		//app_buffer[n] = '\n';
 		__bic_SR_register_on_exit(CPUOFF);
 
 	}
@@ -91,5 +96,8 @@ __interrupt void USART0_RX (void) {
 __interrupt void USART0_TX (void) {
 		//while( data_buffer_number(&txBuf)>0 ) TXBUF0 = data_buffer_read(&txBuf);
 		if(data_buffer_number(&txBuf)>0) TXBUF0 = data_buffer_read(&txBuf);
+		else
+			IE1 &= ~UTXIE0; // wylacz przerwania od TX
+
 }
 
