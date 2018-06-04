@@ -1,88 +1,103 @@
 #include <msp430.h> 
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
-/*
- * PORT1 - DIODY
- *
- *
- * PORT3 - UART
- * 		P3.3 - Receive data in
- * 		P3.4 - Transmit data out
- *
- */
+#include "format.h"
+#include "data_buffer.h"
 
-/*
- * main.c
- */
+//CircularBuffer *rxBuf;
+//CircularBuffer *txBuf;
 
-// bity uart
-#define TXD BIT4
-#define RXD BIT3
+#define RX_BUFFER_INDEX 100 /* <=255 */
+DATA_BUFFER_CREATE(rx_data_buffer_tab, RX_BUFFER_INDEX, rxBuf)
 
-// bity ledow do sprawdzania poprawnosci transmisji
-#define TXLED BIT1
-#define RXLED BIT0
+#define TX_BUFFER_INDEX 100 /* <=255 */
+DATA_BUFFER_CREATE(tx_data_buffer_tab, TX_BUFFER_INDEX, txBuf)
 
-void reset_all_ports()
-{
-	P1DIR = 0xFF; //all output
-	P1OUT = 0xFF; //all set
-
-	P2DIR = 0xFF; //all output
-	P2OUT = 0x00; //all reset
-
-	P3DIR = 0xFF; //all output
-	P3OUT = 0x00; //all reset
-
-	P4DIR = 0xFF; //all output
-	P4OUT = 0x00; //all reset
-
-	P5DIR = 0xFF; //all output
-	P5OUT = 0x00; //all reset
-
-	P6DIR = 0xFF; //all output
-	P6OUT &= 0x00; //all reset
-}
+char app_buffer[100];
 
 int main(void) {
 	WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
-	DCOCTL = 0x00;
 
-	UCA0CTL1 |= UCSSEL_2; // SMCLK
-	//dwubajtowy rejest  baud rate control
-	UCA0BR0 = 0x08; // 1MHz 115200
-	UCA0BR1 = 0x00; // 1MHz 115200
+    P1DIR |= BIT4;
+    P1SEL |= BIT4;
 
-	UCA0MCTL = UCBRS2 +  UCBRS1 + UCBRS0; // Modulation UCBRSx = 6  Z TABELKI
-	UCA0CTL1 &= ~UCSWRST; // Software reset enable 0 Disabled. USCI reset released for operation.
-	UC0IE |= UCA0RXIE; // Enable USCI_A0 RX interrupt
-	
-	reset_all_ports();
-    P3SEL |= TXD + RXD; //turn on uart
+    P3DIR |= BIT4;
+    P3SEL |= BIT5 | BIT4;
 
-    __bis_SR_register(CPUOFF + GIE); //enter  LPM0
 
-	return 0;
+	BCSCTL1 = RSEL2 | RSEL0;
+	DCOCTL = DCO0;
+
+    U0CTL = CHAR;
+    U0TCTL = SSEL1 | SSEL0;
+    U0RCTL = URXEIE;
+    U0BR1 = 0;
+    U0BR0 = 0x09;
+    U0MCTL = 0x08;
+    ME1 = UTXE0 | URXE0;
+    IE1 = /*UTXIE0 |*/ URXIE0;
+    IFG1 &= ~UTXIFG0;
+
+    //char* app_buffer = malloc(100*sizeof(char));
+    //char app_buffer[100];
+
+    __bis_SR_register(GIE + CPUOFF);
+
+
+    while (1) {
+    	textFormat(app_buffer);
+    	int i = 0;
+    	//TXBUF0 = app_buffer[0];
+		data_buffer_write(&txBuf, '\n');
+    	while (i <= mystrlen(app_buffer))
+    	{
+    		//if(i==2) IFG1 |= UTXIFG0;
+    		data_buffer_write(&txBuf, app_buffer[i]);
+    		i++;
+    	}
+    	IE1 |= UTXIE0;
+    	__bis_SR_register(GIE + CPUOFF);
+    }
+
 }
 
+#pragma vector=USART0RX_VECTOR
+__interrupt void USART0_RX (void) {
+	char received;
+	received = RXBUF0;
 
-//transmit
-#pragma vector = USCIAB0TX_VECTOR
-__interrupt void USCI0TX_ISR(void)
-{
-   P1OUT |= TXLED;
+	if(DATA_BUFFER_READY_TO_WRITE(rxBuf))
+		data_buffer_write(&rxBuf, received);
+	TXBUF0 = received; //echo
 
-	//interrupt body here
+	//sprawdzanie czy wyslac to do aplikacji
 
-   P1OUT &= ~TXLED;
+	if(received == '\r'){
+
+		//otworz aplikacje
+		data_buffer_write(&rxBuf, '\n');
+		//app_buffer[0] = '\n';
+		uint8_t n = 0;
+		while(data_buffer_number(&rxBuf) > 0){
+			app_buffer[n] = data_buffer_read(&rxBuf);
+			n++;
+		}
+		//DATA_BUFFER_CLEAR(rxBuf)
+		//app_buffer[n] = '\n';
+		__bic_SR_register_on_exit(CPUOFF);
+
+	}
+
 }
 
-//receive
-#pragma vector=USCIAB0RX_VECTOR
-__interrupt void USCI0RX_ISR(void)
-{
-	P1OUT |= RXLED;
+#pragma vector=USART0TX_VECTOR
+__interrupt void USART0_TX (void) {
+		//while( data_buffer_number(&txBuf)>0 ) TXBUF0 = data_buffer_read(&txBuf);
+		if(data_buffer_number(&txBuf)>0) TXBUF0 = data_buffer_read(&txBuf);
+		else
+			IE1 &= ~UTXIE0; // wylacz przerwania od TX
 
-	//interrupt body here
-
-	P1OUT &= ~RXLED;
 }
+
