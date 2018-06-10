@@ -51,7 +51,7 @@ int main(void) {
     	textFormat(app_buffer);
 
     	int i;
-    	for (i=0;i <= mystrlen(app_buffer);i++)
+    	for (i=0;i <= (mystrlen(app_buffer)-1);i++)
     		data_buffer_write(&txBuf, app_buffer[i]);
 
     	TXBUF0 = data_buffer_read(&txBuf);
@@ -83,7 +83,7 @@ __interrupt void USART0_RX (void) {
 			app_buffer[n] = data_buffer_read(&rxBuf);
 			n++;
 		}
-		app_buffer[n] = '\r';
+		app_buffer[n] = 0;
 		__bic_SR_register_on_exit(CPUOFF);
 	}
 }

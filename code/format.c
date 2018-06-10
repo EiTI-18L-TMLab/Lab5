@@ -4,7 +4,6 @@
 
 #include "format.h"
 
-#define END_SIGN '\r'
 
 // Zamiana liter na małe
 char * toLowCases( char * inputText )
