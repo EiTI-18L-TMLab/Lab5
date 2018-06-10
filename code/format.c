@@ -4,7 +4,7 @@
 
 #include "format.h"
 
-#define END_SIGN '\n'
+#define END_SIGN '\r'
 
 // Zamiana liter na małe
 char * toLowCases( char * inputText )
@@ -48,18 +48,6 @@ char * formatCapitalLetter( char * inputText )
     return inputText;
 }
 
-char * textRecognition( char * inputText)
-{
-
-    uint16_t n = 0;
-    while( inputText[n+3]!= END_SIGN )
-    {
-    	if( inputText[n]=='a' && inputText[n+1]=='r' && inputText[n+2]=='k' && inputText[n+3]=='a')
-    		{inputText[n]='p'; inputText[n+1]='a'; inputText[n+2]='n'; inputText[n+3]='y'; }
-    	n++;
-    }
-    return inputText;
-}
 
 // Usunięcie powtórzonych znaków
 char * formatRepeatedLetters( char * inputText )
@@ -154,7 +142,7 @@ char * textFormat( char * inputText )
 
     //printf("INPUT: %s \n\r", inputText);
     inputText = toLowCases(inputText);
-    inputText = textRecognition(inputText);
+    //inputText = textRecognition(inputText);
     //printf("%s \n\r", inputText);
     inputText = formatRepeatedLetters(inputText);
     //printf("%s \n\r", inputText);
@@ -164,7 +152,6 @@ char * textFormat( char * inputText )
     //printf("%s \n\r", inputText);
     inputText = formatCapitalLetter(inputText);
     //printf("OUTPUT: %s \n\r", inputText);
-
     return inputText;
 }
 
