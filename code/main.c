@@ -14,6 +14,8 @@ DATA_BUFFER_CREATE(tx_data_buffer_tab, TX_BUFFER_INDEX, txBuf)
 
 char app_buffer[105];
 
+volatile bool applicationIsReady=false;
+
 int main(void) {
 	WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
 
@@ -46,16 +48,20 @@ int main(void) {
 	TXBUF0 = data_buffer_read(&txBuf);
 	IE1 |= UTXIE0; // enable TX
 */
+    applicationIsReady = true;
     while (1) {
     	__bis_SR_register(GIE + CPUOFF);
+    	applicationIsReady = false;
     	textFormat(app_buffer);
 
     	int i;
     	for (i=0;i <= (mystrlen(app_buffer)-1);i++)
     		data_buffer_write(&txBuf, app_buffer[i]);
+    	data_buffer_write(&txBuf, '\n');
 
     	TXBUF0 = data_buffer_read(&txBuf);
     	IE1 |= UTXIE0; // enable TX
+    	applicationIsReady = true;
     }
 
 }
@@ -75,13 +81,16 @@ __interrupt void USART0_RX (void) {
 	}
 
 	//sprawdzanie czy wyslac to do aplikacji
-	if(received == '\r' /*|| DATA_BUFFER_FULL_FLAG_IS_SET(rxBuf)*/ )
+	if(received == '\r' && (applicationIsReady==true))
 	{
+		applicationIsReady = false;
 		//otworz aplikacje
 		uint16_t n = 0;
 		while(data_buffer_number(&rxBuf) > 0){
 			app_buffer[n] = data_buffer_read(&rxBuf);
 			n++;
+			if(app_buffer[n-1]=='\r')
+				break;
 		}
 		app_buffer[n] = 0;
 		__bic_SR_register_on_exit(CPUOFF);
